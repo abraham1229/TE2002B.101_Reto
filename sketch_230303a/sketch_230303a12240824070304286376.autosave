@@ -1,0 +1,250 @@
+//Primera Parte del codigo
+PImage SpriteJefeEmmanuel, SpriteNaveJugador, SpriteVaderTie;
+PImage SpaceBack, NaveLeft, NaveRight, SpriteJefeDavid;
+int pixelsize = 4;
+int gridsize  = pixelsize * 7 + 5;
+Player player;
+ArrayList enemies = new ArrayList();
+ArrayList bullets = new ArrayList();
+int direction = 1;
+boolean incy = false;
+int score = 0;
+PFont f;
+
+void setup() {
+    size(1900,1000);
+    //Carga la foto
+    SpriteJefeEmmanuel = loadImage("FotoEmmanuelJefe.png");
+    SpriteJefeDavid = loadImage("FotoDavidJefe.png");
+    SpriteNaveJugador = loadImage("spriteNaveJugador.png");
+    SpriteVaderTie = loadImage("vaderTie.png");
+    SpaceBack = loadImage("SpaceBg.png");
+    NaveLeft = loadImage("NaveLeft.png");
+    NaveRight = loadImage("NaveRight.png");
+    background(SpaceBack);
+    noStroke();
+    player = new Player();
+    createEnemies();
+
+    if(score == 8400){
+        createBoss();
+    }
+
+    f = createFont("Arial", 36, true);
+}
+
+void draw() {
+    background(SpaceBack);
+    
+    drawScore();
+
+    player.draw();
+
+    for (int i = 0; i < bullets.size(); i++) {
+        Bullet bullet = (Bullet) bullets.get(i);
+        bullet.draw();
+    }
+
+    for (int i = 0; i < enemies.size(); i++) {
+        Enemy enemy = (Enemy) enemies.get(i);
+        if (enemy.outside() == true) {
+            direction *= (-1);
+            incy = true;
+            break;
+        }
+    }
+
+    for (int i = 0; i < enemies.size(); i++) {
+        Enemy enemy = (Enemy) enemies.get(i);
+        if (!enemy.alive()) {
+            enemies.remove(i);
+        } else {
+            enemy.draw();
+        }
+    }
+
+    incy = false;
+}
+
+void drawScore() {
+    textFont(f);
+    text("Score: " + String.valueOf(score), 300, 50);
+}
+
+void createEnemies() {
+    for (int i = 0; i < width/gridsize/2; i++) {
+        for (int j = 0; j <= 5; j++) {
+            enemies.add(new Enemy(i*gridsize, j*gridsize + 70));
+        }
+    }
+}
+
+void createBoss(){
+    for (int i = 0; i<=1; i++){
+        enemies.add(new Boss(i*gridsize, 70));
+    }
+}
+
+class SpaceShip {
+    int x, y;
+    PImage sprite;
+
+    void draw() {
+        updateObj();
+        drawSprite(x, y);
+    }
+
+    void drawSprite(int xpos, int ypos) {
+        image(sprite, xpos, ypos);
+    }
+
+    void updateObj() {
+    }
+}
+
+class Player extends SpaceShip {
+    boolean canShoot = true;
+    int shootdelay = 0;
+
+    Player() {
+        x = width/gridsize/2;
+        y = height - (20 * pixelsize);
+        sprite = SpriteNaveJugador;  
+    }
+
+    void updateObj() {
+        if (keyPressed && keyCode == LEFT) {
+            x -= 5;
+            sprite = NaveRight;
+        }
+        
+        if (keyPressed && keyCode == RIGHT) {
+            x += 5;
+            sprite = NaveLeft;
+        }
+        
+        if (keyPressed && keyCode == CONTROL && canShoot) {
+            sprite = SpriteNaveJugador;
+            bullets.add(new Bullet(x-10, y));
+            bullets.add(new Bullet(x+49, y));
+            canShoot = false;
+            shootdelay = 0;
+        }
+
+        shootdelay++;
+        
+        if (shootdelay >= 20) {
+            canShoot = true;
+        }
+    }
+}
+
+class Enemy extends SpaceShip {
+    int life = 1;
+    
+    Enemy(int xpos, int ypos) {
+        x = xpos;
+        y = ypos;
+        sprite = SpriteVaderTie; 
+    }
+
+    void updateObj() {
+        if (frameCount%30 == 0) {
+            x += direction * gridsize;
+        }
+        
+        if (incy == true) {
+            y += gridsize / 2;
+        }
+    }
+
+    boolean alive() {
+        for (int i = 0; i < bullets.size(); i++) {
+            Bullet bullet = (Bullet) bullets.get(i);
+            
+            if (bullet.x > x && bullet.x < x + 7 * pixelsize + 5 && bullet.y > y && bullet.y < y + 5 * pixelsize) {
+                bullets.remove(i);
+                
+                life--;
+                //nextColorErrase
+                
+                if (life == 0) {
+                    score += 50;
+                    return false;
+                }
+                
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    boolean outside() {
+        return x + (direction*gridsize) < 0 || x + (direction*gridsize) > width - gridsize;
+    }
+}
+
+class Bullet {
+    int x, y;
+
+    Bullet(int xpos, int ypos) {
+        x = xpos + gridsize/2 - 4;
+        y = ypos;
+    }
+
+    void draw() {
+        fill(255);
+        rect(x, y, pixelsize, pixelsize);
+        y -= pixelsize * 2;
+    }
+}
+
+class Boss extends SpaceShip {
+    int life = 10;
+    
+    Boss(int xpos, int ypos) {
+        x = xpos;
+        y = ypos; 
+    }
+
+    void updateObj() {
+        if (frameCount%30 == 0) {
+            x += direction * gridsize;
+        }
+        
+        if (incy == true) {
+            y += gridsize / 2;
+        }
+    }
+
+    void setSprite(PImage spriteTemporal){
+        sprite = spriteTemporal;
+    }
+
+    boolean alive() {
+        for (int i = 0; i < bullets.size(); i++) {
+            Bullet bullet = (Bullet) bullets.get(i);
+            
+            if (bullet.x > x && bullet.x < x + 7 * pixelsize + 5 && bullet.y > y && bullet.y < y + 5 * pixelsize) {
+                bullets.remove(i);
+                
+                life--;
+                //nextColorErrase
+                
+                if (life == 0) {
+                    score += 300;
+                    return false;
+                }
+                
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    boolean outside() {
+        return x + (direction*gridsize) < 0 || x + (direction*gridsize) > width - gridsize;
+    }
+}
