@@ -1,20 +1,47 @@
-//Primera Parte del codigo
+/*
+Jesús Alejandro Gómez Bautista A01736171 | IRS
+Abraham Ortiz Castro | A01736196 | IRS
+Eleazar Olivas Gaspar | A01731405 | IRS
+Juego "Space Invaders" con uso de processing.
+*/
+//Primera Parte del codigo.
+import processing.sound.*;
+
+//Sprites en uso, archivos png.
 PImage SpriteJefeEmmanuel, SpriteNaveJugador, SpriteVaderTie;
 PImage SpaceBack, NaveLeft, NaveRight, SpriteJefeDavid;
+
+//OST juego.
+SoundFile disparo_nave, bossTheme, gameTheme;
+
+//Inicialización de variables globales.
 int pixelsize = 4;
 int gridsize  = pixelsize * 7 + 5;
+
+//Inicialización del obejeto jugador.
 Player player;
+
+//Arreglos para la inicialización de enemigos, jefes y proyectiles.
 ArrayList enemies = new ArrayList();
 ArrayList bullets = new ArrayList();
 ArrayList jefes = new ArrayList(); 
+
+//Inicialización de variables para el movimiento de enemigos.
 int direction = 1;
 boolean incy = false;
+
+//Inicialización del puntaje obtenido.
 int score = 0;
+
+//Tipo de letra para el display de puntaje.
 PFont f;
 
+//Funcion setup, se ejecuta una vez al inicio del programa.
 void setup() {
+    //Inicia tamaño de la ventana con 1900  * 1000 pixeles.
     size(1900,1000);
-    //Carga la foto
+
+    //Carga de los archivos png para los sprites de los objetos.
     SpriteJefeEmmanuel = loadImage("FotoEmmanuelJefe.png");
     SpriteJefeDavid = loadImage("FotoDavidJefe.png");
     SpriteNaveJugador = loadImage("spriteNaveJugador.png");
@@ -22,27 +49,48 @@ void setup() {
     SpaceBack = loadImage("SpaceBg.png");
     NaveLeft = loadImage("NaveLeft.png");
     NaveRight = loadImage("NaveRight.png");
+
+    //Carga de los archivos de audio para el OST del juego.
+    disparo_nave = new SoundFile(this, "Disparo.mp3");
+    bossTheme = new SoundFile(this, "BOSS.mp3"); 
+    gameTheme = new SoundFile(this, "IOT_invaders.mp3");
+    gameTheme.play();
+
+    //Background del juego.
     background(SpaceBack);
     noStroke();
+
+    //Crea jugador.
     player = new Player();
+
+    //Crean enemigos.
     createEnemies();
+
+    //Crean jefes.
     createBosses();
 
+    //Crean el tipo de letra 'arial' y el tamaño '36' para mostrar el puntaje
     f = createFont("Arial", 36, true);
 }
 
+//Funcion de draw, se encarga de dibujar al jugador y los enemigos así como los jefes y balas.
 void draw() {
+    //Se vuelve a dibujar el fondo para dar la ilución de movimiento, y que no se vean los anteriores dibujos.
     background(SpaceBack);
     
+    //Llamada a funcion que hace el display del puntaje.
     drawScore();
 
+    //Dibuja al jugador.
     player.draw();
 
+    //Dibujo del arreglo de balas.
     for (int i = 0; i < bullets.size(); i++) {
         Bullet bullet = (Bullet) bullets.get(i);
         bullet.draw();
     }
 
+    //Dibujo del arreglo de enemigos, y su movimiento.
     for (int i = 0; i < enemies.size(); i++) {
         Enemy enemy = (Enemy) enemies.get(i);
         if (enemy.outside() == true) {
@@ -52,6 +100,7 @@ void draw() {
         }
     }
 
+    //Verificacion si el enemigo esta vivo.
     for (int i = 0; i < enemies.size(); i++) {
         Enemy enemy = (Enemy) enemies.get(i);
         if (!enemy.alive()) {
@@ -61,8 +110,18 @@ void draw() {
         }
     }
 
+    //Condicional, cuando el puntaje llega a 8400 significa que todos los enemigos del arreglo inicial han sido derrotados.
+    //Empieza batalla contra jefes.
     if (score==8400){
+        //Se detiene el thema original.
+        gameTheme.stop();
 
+        //Inicia tema de los jefes.
+        if (!bossTheme.isPlaying()){
+            bossTheme.play();
+        }
+
+        //Dibujo de Jefes y su movimiento.
         for (int i = 0; i < jefes.size(); i++) {
         Enemy enemy = (Enemy) jefes.get(i);
         if (enemy.outside() == true) {
@@ -72,6 +131,7 @@ void draw() {
         }
     }
 
+    //Verifica si los jefes se encuentran vivos para seguir dibujandolos. 
     for (int i = 0; i < jefes.size(); i++) {
         Enemy enemy = (Enemy) jefes.get(i);
         if (!enemy.alive()) {
@@ -84,33 +144,36 @@ void draw() {
     incy = false;
 }
 
+//Función que hace el display del puntaje.
 void drawScore() {
     textFont(f);
     text("Score: " + String.valueOf(score), 300, 50);
 }
 
+//Funcion que crea el arreglo de los enemigos.
 void createEnemies() {
     for (int i = 0; i < width/gridsize/2; i++) {
         for (int j = 0; j <= 5; j++) {
-            enemies.add(new Enemy(i*gridsize+20, j*gridsize + 70, SpriteVaderTie, 1));
+            enemies.add(new Enemy(i*gridsize+20, j*gridsize + 70, SpriteVaderTie, 1, 50));
         }
     }
 }
 
+//Funcion que crea el arreglo de los jefes.
 void createBosses(){
     for (int i = 0; i <= 1; i++) {
         for (int j = 0; j <= 0; j++) {
             if (i == 0){
-                jefes.add(new Enemy(i*gridsize, j*gridsize + 70, SpriteJefeEmmanuel,10));
+                jefes.add(new Enemy(i*gridsize, j*gridsize + 70, SpriteJefeEmmanuel,10, 600));
             }else{
-                jefes.add(new Enemy(i*gridsize + 200, j*gridsize + 70, SpriteJefeDavid,10));
+                jefes.add(new Enemy(i*gridsize + 200, j*gridsize + 70, SpriteJefeDavid,10, 600));
             }
         }
     }
 }
 
 
-
+//Se establece la clase de Nave 'SpaceShip'.
 class SpaceShip {
     int x, y;
     PImage sprite;
@@ -132,28 +195,36 @@ class SpaceShip {
     }
 }
 
+//inicializa la clase del jugador que hereda de SpaceShip
 class Player extends SpaceShip {
+    //Permiso de disparar.
     boolean canShoot = true;
     int shootdelay = 0;
 
+    //Constructor de jugador
     Player() {
         x = width/gridsize/2;
         y = height - (20 * pixelsize);
         sprite = SpriteNaveJugador;  
     }
 
+    //Funcion que da el movimiento con las teclas.
     void updateObj() {
+        //Movimiento a la izquierda.
         if (keyPressed && keyCode == LEFT) {
             x -= 5;
             sprite = NaveRight;
         }
         
+        //Movimiento a la derecha.
         if (keyPressed && keyCode == RIGHT) {
             x += 5;
             sprite = NaveLeft;
         }
         
+        //Disparo
         if (keyPressed && keyCode == CONTROL && canShoot) {
+            disparo_nave.play();
             sprite = SpriteNaveJugador;
             bullets.add(new Bullet(x-10, y));
             bullets.add(new Bullet(x+49, y));
@@ -169,17 +240,20 @@ class Player extends SpaceShip {
     }
 }
 
-
+//Clase de enemigo que tambien hereda de SpaceShip.
 class Enemy extends SpaceShip {
     int life;
+    int puntajeTemporal;
     
-    Enemy(int xpos, int ypos, PImage spriteTemporal, int lifeTemp) {
+    //Constructor del enemigo
+    Enemy(int xpos, int ypos, PImage spriteTemporal, int lifeTemp, int tempScore) {
         x = xpos;
         y = ypos;
         sprite = spriteTemporal;
         life = lifeTemp; 
+        puntajeTemporal = tempScore;
     }
-
+    //Actualización de la dirrecion de los enemigos.
     void updateObj() {
         if (frameCount%30 == 0) {
             x += direction * gridsize;
@@ -190,6 +264,7 @@ class Enemy extends SpaceShip {
         }
     }
 
+    //Funcion para verificar que sigan vivos los enemigos, si no es el caso aumenta el puntaje.
     boolean alive() {
         for (int i = 0; i < bullets.size(); i++) {
             Bullet bullet = (Bullet) bullets.get(i);
@@ -200,8 +275,9 @@ class Enemy extends SpaceShip {
                 life--;
                 //nextColorErrase
                 
+                //Aumenta el puntaje si un enemigo ha sido derrotado.
                 if (life == 0) {
-                    score += 50;
+                    score += puntajeTemporal;
                     return false;
                 }
                 
@@ -212,19 +288,24 @@ class Enemy extends SpaceShip {
         return true;
     }
 
+    //Cambio de dirreción para que los enemigos no salgan de la pnatalla.
     boolean outside() {
         return x + (direction*gridsize) < 0 || x + (direction*gridsize) > width - gridsize;
     }
 }
 
+//Establece clase Bullet 'proyectil'
 class Bullet {
+    //Posicion de el proyectil
     int x, y;
 
+    //Constructor del protectil
     Bullet(int xpos, int ypos) {
         x = xpos + gridsize/2 - 4;
         y = ypos;
     }
 
+    //display del proyectil
     void draw() {
         fill(255);
         rect(x, y, pixelsize, pixelsize);
