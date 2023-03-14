@@ -1,16 +1,12 @@
+
 /*
 Jesús Alejandro Gómez Bautista A01736171 | IRS
 Abraham Ortiz Castro | A01736196 | IRS
 Eleazar Olivas Gaspar | A01731405 | IRS
 Juego "Space Invaders" con uso de processing.
 */
-//Importado de librerias
-
-//Libreria para uso de archivos de sonido (.mp3).
+//Primera Parte del codigo.
 import processing.sound.*;
-
-//Libreria para comunicacnión serial por puerto.
-//import processing.serial.*;
 
 //Sprites en uso, archivos png.
 PImage SpriteJefeEmmanuel, SpriteNaveJugador, SpriteVaderTie;
@@ -153,9 +149,9 @@ void draw() {
     if(score == 9000){
         background(0);
         textFont(f);
-        text("Felicidades compañero ganaste!!!",(width/2)-300, height/2-30);
-        text("Nuevo juego", (width/2)-300, height/2);
-        text("Si [UpKey]       no [DownKey]", (width/2)-300, (height/2)+30);
+        text("Felicidades compañero ganaste!!!",(width/2)-40, height/2-30)
+        text("Nuevo juego", (width/2)-40, height/2);
+        text("Si [UpKey]       no [DownKey]", (width/2)-40, (height/2)+30);
 
         //Inicio nuevo juego.
         if(keyPressed && keyCode == UP){
@@ -265,7 +261,7 @@ class Player extends SpaceShip {
         }
         
         //Disparo
-        if (keyPressed && keyCode == CONTROL  ) {
+        if (keyPressed && keyCode == CONTROL && canShoot) {
             disparo_nave.play();
             sprite = SpriteNaveJugador;
             bullets.add(new Bullet(x-10, y));
